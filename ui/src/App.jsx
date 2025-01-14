@@ -1,21 +1,55 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import './App.css';
-import { Input } from './components/Input';
+import { Form } from './components/Form';
 import { RecordList } from './components/RecordList';
 
 function App() {
   const [records, setRecords] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:3000/test')
+    fetch('http://localhost:3000')
       .then((res) => res.json())
-      .then((res) => setHello(res));
+      .then((res) => setRecords(res));
   }, []);
+
+  const handleSubmit = useCallback(
+    (input) => {
+      fetch('http://localhost:3000', {
+        method: 'POST',
+        body: JSON.stringify({ record: input }),
+        headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+        },
+      })
+        .then((res) => res.json())
+        .then((res) => setRecords([...res, ...records]));
+    },
+    [records]
+  );
+
+  const clear = () => {
+    fetch(`http://localhost:3000/delete`, {
+      method: 'DELETE',
+      headers: {
+        'Content-type': 'application/json; charset=UTF-8',
+      },
+    })
+      .then((res) => res.json())
+      .then(() => setRecords([]));
+  };
 
   return (
     <div className="app">
       <div className="container">
-        <Input />
+        <Form handleSubmit={handleSubmit} />
+
+        <button
+          className="button"
+          onClick={clear}
+          style={{ marginTop: '20px' }}
+        >
+          Clear All
+        </button>
 
         <div className="bottom">
           {!records?.length ? (
